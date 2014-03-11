@@ -24,7 +24,7 @@ var timeout = flag.Duration("timeout", 10*time.Second, "maximum runtime of the R
 var script = flag.String("script", `echo hello, world`, "script to run in RunOnce")
 var memoryMB = flag.Int("memoryMB", 0, "memory limit of the RunOnce (0 for no limit)")
 var diskMB = flag.Int("diskMB", 0, "disk limit of the RunOnce (0 for no limit)")
-var stack = flag.String("stack", "default", "stack")
+var stack = flag.String("stack", "lucid64", "stack")
 var logGuid = flag.String("logGuid", "", "guid for logs (empty for no logs)")
 var logSourceName = flag.String("logSourceName", "TST", "source name for logs")
 
