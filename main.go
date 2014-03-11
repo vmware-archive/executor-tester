@@ -42,7 +42,11 @@ func main() {
 	datadogApiKey := os.Getenv("DATADOG_API_KEY")
 	datadogAppKey := os.Getenv("DATADOG_APP_KEY")
 
-	datadogClient := datadog.NewClient(datadogApiKey, datadogAppKey)
+	var datadogClient *datadog.Client
+
+	if datadogApiKey != "" {
+		datadogClient = datadog.NewClient(datadogApiKey, datadogAppKey)
+	}
 
 	store := etcdstoreadapter.NewETCDStoreAdapter(
 		strings.Split(*etcdMachines, ","),
@@ -67,26 +71,28 @@ func main() {
 
 	startAll := time.Now()
 
-	event, err := datadogClient.PostEvent(&datadog.Event{
-		Title: "diego_runonce_stampede_start",
-		Text:  "started the stampede",
-		Tags:  []string{fmt.Sprintf("count:%d", *runOnceCount)},
-	})
-
-	log.Println("posted start event:", event, err)
-
-	defer func() {
+	if datadogClient != nil {
 		event, err := datadogClient.PostEvent(&datadog.Event{
-			Title: "diego_runonce_stampede_stop",
-			Text:  "stopped the stampede",
-			Tags: []string{
-				fmt.Sprintf("count:%d", *runOnceCount),
-				fmt.Sprintf("duration:%s", time.Since(startAll)),
-			},
+			Title: "diego_runonce_stampede_start",
+			Text:  "started the stampede",
+			Tags:  []string{fmt.Sprintf("count:%d", *runOnceCount)},
 		})
 
-		log.Println("posted stop event:", event, err)
-	}()
+		log.Println("posted start event:", event, err)
+
+		defer func() {
+			event, err := datadogClient.PostEvent(&datadog.Event{
+				Title: "diego_runonce_stampede_stop",
+				Text:  "stopped the stampede",
+				Tags: []string{
+					fmt.Sprintf("count:%d", *runOnceCount),
+					fmt.Sprintf("duration:%s", time.Since(startAll)),
+				},
+			})
+
+			log.Println("posted stop event:", event, err)
+		}()
+	}
 
 	for i := 0; i < *runOnceCount; i++ {
 		go func() {
