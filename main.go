@@ -180,7 +180,7 @@ func emitRunOnceStates(datadogClient *datadog.Client, store *etcdstoreadapter.ET
 
 		metrics := []datadog.Metric{}
 
-		for _, state := range []string{"pending", "claimed", "running", "completed"} {
+		for _, state := range []string{"pending", "claimed", "running", "completed", "resolving"} {
 			runOnces, found := all.Lookup(state)
 			if !found {
 				log.Println("failed to find RunOnces in", state, "state")
