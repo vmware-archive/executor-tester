@@ -82,7 +82,7 @@ func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models
 			})
 
 			seenRunOnces++
-			bbs.ResolveRunOnce(completedRunOnce)
+			go bbs.ResolveRunOnce(completedRunOnce)
 		case err := <-errs:
 			log.Println("watch error:", err)
 		}
