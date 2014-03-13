@@ -88,7 +88,7 @@ func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models
 			go func() {
 				err := bbs.ResolveRunOnce(completedRunOnce)
 				if err != nil {
-					log.Println("failed to resolve run once:", err)
+					log.Println("failed to resolve run once:", completedRunOnce.Guid, err)
 				}
 				waitGroup.Done()
 			}()
