@@ -52,7 +52,7 @@ func main() {
 
 	if *emitStates {
 		// logging mode
-		etcd_logger.EmitRunOnceStates(datadogClient, store)
+		etcd_logger.EmitRunOnceStates(datadogClient, store, strings.Split(*etcdMachines, ","))
 	} else {
 		// stampede mode
 
