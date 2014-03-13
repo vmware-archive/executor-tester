@@ -62,9 +62,12 @@ func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models
 	runOnceStartTimes := make(map[string]time.Time)
 	waitGroup := &sync.WaitGroup{}
 
+	timer := time.After(100 * time.Minute)
+
+OUTER:
 	for {
 		if seenRunOnces == runOnceCount {
-			break
+			timer = time.After(30 * time.Second)
 		}
 
 		select {
@@ -86,14 +89,19 @@ func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models
 			seenRunOnces++
 			waitGroup.Add(1)
 			go func() {
+				log.Println("deleting", completedRunOnce.Guid)
 				err := bbs.ResolveRunOnce(completedRunOnce)
 				if err != nil {
 					log.Println("failed to resolve run once:", completedRunOnce.Guid, err)
+				} else {
+					log.Println("deleted:", completedRunOnce.Guid)
 				}
 				waitGroup.Done()
 			}()
 		case err := <-errs:
 			log.Println("watch error:", err)
+		case <-timer:
+			break OUTER
 		}
 	}
 
@@ -109,6 +117,10 @@ func createRunOnce(runOnce models.RunOnce, startTimes chan runOnceTime, bbs *bbs
 	}
 
 	runOnce.Guid = randomGuid.String()
+	runOnce.Actions = []models.ExecutorAction{
+		{models.RunAction{Script: fmt.Sprintf("echo '%s'", runOnce.Guid), Timeout: 10 * time.Second}},
+		runOnce.Actions[0],
+	}
 
 	startTimes <- runOnceTime{guid: runOnce.Guid, startTime: time.Now()}
 
