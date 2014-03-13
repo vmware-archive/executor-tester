@@ -7,6 +7,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 	datadog "github.com/xb95/go-datadog-api"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -59,6 +60,7 @@ func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models
 
 	seenRunOnces := 0
 	runOnceStartTimes := make(map[string]time.Time)
+	waitGroup := &sync.WaitGroup{}
 
 	for {
 		if seenRunOnces == runOnceCount {
@@ -82,11 +84,17 @@ func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models
 			})
 
 			seenRunOnces++
-			go bbs.ResolveRunOnce(completedRunOnce)
+			waitGroup.Add(1)
+			go func() {
+				bbs.ResolveRunOnce(completedRunOnce)
+				waitGroup.Done()
+			}()
 		case err := <-errs:
 			log.Println("watch error:", err)
 		}
 	}
+
+	waitGroup.Wait()
 
 	close(stop)
 }
