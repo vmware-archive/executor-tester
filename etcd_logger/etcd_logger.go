@@ -14,6 +14,7 @@ import (
 
 func EmitRunOnceStates(datadogClient *datadog.Client, store *etcdstoreadapter.ETCDStoreAdapter, etcdMachines []string) {
 	for {
+		now := time.Now().Unix()
 		all, err := store.ListRecursively("/v1/run_once")
 		if err != nil {
 			log.Println("failed to get all RunOnces:", err)
@@ -40,7 +41,7 @@ func EmitRunOnceStates(datadogClient *datadog.Client, store *etcdstoreadapter.ET
 				Points: []datadog.DataPoint{
 					datadog.DataPoint(
 						[2]float64{
-							float64(time.Now().Unix()),
+							float64(now),
 							float64(stats["watchers"]),
 						},
 					),
@@ -61,13 +62,32 @@ func EmitRunOnceStates(datadogClient *datadog.Client, store *etcdstoreadapter.ET
 				Points: []datadog.DataPoint{
 					datadog.DataPoint(
 						[2]float64{
-							float64(time.Now().Unix()),
+							float64(now),
 							float64(len(runOnces.ChildNodes)),
 						},
 					),
 				},
 			})
 		}
+
+		executors, err := store.ListRecursively("/v1/executor")
+		if err != nil {
+			log.Println("failed to get all Executors:", err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		metrics = append(metrics, datadog.Metric{
+			Metric: "executors_maintaining_presence",
+			Points: []datadog.DataPoint{
+				datadog.DataPoint(
+					[2]float64{
+						float64(now),
+						float64(len(executors.ChildNodes)),
+					},
+				),
+			},
+		})
 
 		err = datadogClient.PostMetrics(metrics)
 		if err != nil {
