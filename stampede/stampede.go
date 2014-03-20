@@ -22,7 +22,7 @@ type RunOnceResult struct {
 	Failed   bool
 }
 
-func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce models.RunOnce, runOnceCount int) {
+func RunonceStampede(bbs *bbs.BBS, datadogClient *datadog.Client, runOnce *models.RunOnce, runOnceCount int) {
 
 	completed, stop, errs := bbs.WatchForCompletedRunOnce()
 
@@ -110,7 +110,7 @@ OUTER:
 	close(stop)
 }
 
-func createRunOnce(runOnce models.RunOnce, startTimes chan runOnceTime, bbs *bbs.BBS) {
+func createRunOnce(runOnce *models.RunOnce, startTimes chan runOnceTime, bbs *bbs.BBS) {
 	randomGuid, err := uuid.NewV4()
 	if err != nil {
 		log.Fatalln("somehow failed to create a guid:", err)

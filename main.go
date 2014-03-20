@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/cloudfoundry/gunk/timeprovider"
 	"github.com/pivotal-cf-experimental/executor-tester/etcd_logger"
 	"github.com/pivotal-cf-experimental/executor-tester/stampede"
 	datadog "github.com/xb95/go-datadog-api"
@@ -56,7 +57,7 @@ func main() {
 	} else {
 		// stampede mode
 
-		runOnce := models.RunOnce{
+		runOnce := &models.RunOnce{
 			Actions: []models.ExecutorAction{
 				{
 					models.RunAction{
@@ -76,7 +77,7 @@ func main() {
 				SourceName: *logSourceName,
 			}
 		}
-		stampede.RunonceStampede(bbs.New(store), datadogClient, runOnce, *runOnceCount)
+		stampede.RunonceStampede(bbs.New(store, timeprovider.NewTimeProvider()), datadogClient, runOnce, *runOnceCount)
 	}
 
 }
